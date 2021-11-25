@@ -1,134 +1,141 @@
 <template>
   <div class="main-doviz">
-    <v-data-table
-      :headers="headers"
-      :items="data"
-      hide-default-footer
-      :loading="!goldloaded"
-      no-data-text="Güncel Datalar Yükleniyor..."
-      loading-text="Güncel Datalar Yükleniyor..."
-      disable-pagination
-      style="border: 1px solid #ddd; border-radius: 0"
-      :style="[
-        $store.state.isLight
-          ? 'color:#rgba(0,0,0,0.87); background-color:rgba(255,255,255,.3);'
-          : 'color:#ffffff;background-color:rgba(0,0,0,.3);',
-      ]"
-      mobile-breakpoint="0"
-      class="mt-1"
-      dense
-    >
-      <template v-slot:loading>
-        <Loading />
-        <span>Güncel Datalar Yükleniyor...</span>
-      </template>
-      <template v-slot:header.time="{ header }">
-        <div class="convert-dropdown row">
-          {{ (header.text = "") }}
-          <v-select
-            style="
-              font-size: 15px;
-              background: transparent;
-              width: 90px;
-              margin-top: -7px;
-            "
-            class="amber--text accent-3"
-            :items="convertTo"
-            solo
-            dense
-            dark
-            v-model="selected"
-            hide-details
-            @change="convertTable"
-          ></v-select>
-        </div>
-      </template>
-
-      <template v-slot:item="{ item }">
-        <tr>
-          <td>
-            <nuxt-link
-              :to="
-                '/doviz-kurlari/' + item.type.toLowerCase().split(' ').join('-')
+    <client-only>
+      <v-data-table
+        :headers="headers"
+        :items="data"
+        hide-default-footer
+        :loading="!goldloaded"
+        no-data-text="Güncel Datalar Yükleniyor..."
+        loading-text="Güncel Datalar Yükleniyor..."
+        disable-pagination
+        style="border: 1px solid #ddd; border-radius: 0"
+        :style="[
+          $store.state.isLight
+            ? 'color:#rgba(0,0,0,0.87); background-color:rgba(255,255,255,.3);'
+            : 'color:#ffffff;background-color:rgba(0,0,0,.3);',
+        ]"
+        mobile-breakpoint="0"
+        class="mt-1"
+        dense
+      >
+        <template v-slot:loading>
+          <Loading />
+          <span>Güncel Datalar Yükleniyor...</span>
+        </template>
+        <template v-slot:header.time="{ header }">
+          <div class="convert-dropdown row">
+            {{ (header.text = "") }}
+            <v-select
+              style="
+                font-size: 15px;
+                background: transparent;
+                width: 90px;
+                margin-top: -7px;
               "
-              class="body-1"
-              tag="span"
-              :style="`font-size: ${$store.state.tdFontSize} !important;cursor:pointer;`"
-            >
+              class="amber--text accent-3"
+              :items="convertTo"
+              solo
+              dense
+              dark
+              v-model="selected"
+              hide-details
+              @change="convertTable"
+            ></v-select>
+          </div>
+        </template>
+
+        <template v-slot:item="{ item }">
+          <tr>
+            <td>
+              <nuxt-link
+                :to="
+                  '/doviz-kurlari/' +
+                  item.type.toLowerCase().split(' ').join('-')
+                "
+                class="body-1"
+                tag="span"
+                :style="`font-size: ${$store.state.tdFontSize} !important;cursor:pointer;`"
+              >
+                {{
+                  item.type == "SUUDİ ARABİSTAN RİYALİ"
+                    ? "S.A. RİYALİ"
+                    : item.type
+                }}
+              </nuxt-link>
+            </td>
+            <td>
               {{
-                item.type == "SUUDİ ARABİSTAN RİYALİ"
-                  ? "S.A. RİYALİ"
-                  : item.type
+                (item["Alış"].replace(",", ".") / denominator)
+                  | turkishCurrencyformat
               }}
-            </nuxt-link>
-          </td>
-          <td>
-            {{
-              (item["Alış"].replace(",", ".") / denominator)
-                | turkishCurrencyformat
-            }}
-          </td>
-          <td>
-            {{
-              (item["Satış"].replace(",", ".") / denominator)
-                | turkishCurrencyformat
-            }}
-            <v-icon
-              v-if="smAndDown && item['Değişim'].indexOf('-') < 0"
-              class="float-right"
-              size="20"
-              color="green"
-            >
-              mdi-arrow-up-bold
-            </v-icon>
-            <v-icon
-              v-else-if="smAndDown && !(item['Değişim'].indexOf('-') < 0)"
-              class="float-right"
-              size="20"
-              color="red"
-            >
-              mdi-arrow-down-bold
-            </v-icon>
-          </td>
-          <td v-if="!smAndDown">
-            <span
-              :class="[
-                item['Değişim'].indexOf('-') < 0 ? 'green--text' : 'red--text',
-              ]"
-              class="body-1"
-              :style="`font-size: ${$store.state.tdFontSize} !important;`"
-            >
+            </td>
+            <td>
               {{
-                ((parseFloat(item["Satış"].replace(",", ".")) *
-                  parseFloat(
-                    item["Değişim"].replace("%", "").replace(",", ".")
-                  )) /
-                  100)
-                  | signint
+                (item["Satış"].replace(",", ".") / denominator)
+                  | turkishCurrencyformat
               }}
-            </span>
-          </td>
-          <td v-if="!smAndDown">
-            <span
-              :class="[
-                item['Değişim'].indexOf('-') < 0 ? 'green--text' : 'red--text',
-              ]"
-              class="body-1"
-              :style="`font-size: ${$store.state.tdFontSize} !important;`"
-            >
-              {{ item["Değişim"] }}
-            </span>
-          </td>
-          <td v-if="!smAndDown">
-            <span
-              class="body-1"
-              :style="`font-size: ${$store.state.tdFontSize} !important;`"
-              >{{ item.time | onlyTime }}</span
-            >
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
+              <v-icon
+                v-if="smAndDown && item['Değişim'].indexOf('-') < 0"
+                class="float-right"
+                size="20"
+                color="green"
+              >
+                mdi-arrow-up-bold
+              </v-icon>
+              <v-icon
+                v-else-if="smAndDown && !(item['Değişim'].indexOf('-') < 0)"
+                class="float-right"
+                size="20"
+                color="red"
+              >
+                mdi-arrow-down-bold
+              </v-icon>
+            </td>
+            <td v-if="!smAndDown">
+              <span
+                :class="[
+                  item['Değişim'].indexOf('-') < 0
+                    ? 'green--text'
+                    : 'red--text',
+                ]"
+                class="body-1"
+                :style="`font-size: ${$store.state.tdFontSize} !important;`"
+              >
+                {{
+                  ((parseFloat(item["Satış"].replace(",", ".")) *
+                    parseFloat(
+                      item["Değişim"].replace("%", "").replace(",", ".")
+                    )) /
+                    100)
+                    | signint
+                }}
+              </span>
+            </td>
+            <td v-if="!smAndDown">
+              <span
+                :class="[
+                  item['Değişim'].indexOf('-') < 0
+                    ? 'green--text'
+                    : 'red--text',
+                ]"
+                class="body-1"
+                :style="`font-size: ${$store.state.tdFontSize} !important;`"
+              >
+                {{ item["Değişim"] }}
+              </span>
+            </td>
+            <td v-if="!smAndDown">
+              <span
+                class="body-1"
+                :style="`font-size: ${$store.state.tdFontSize} !important;`"
+                >{{ item.time | onlyTime }}</span
+              >
+            </td>
+          </tr>
+        </template>
+      </v-data-table>
+    </client-only>
     <v-overlay
       :opacity="1"
       :value="overlay"
@@ -235,25 +242,25 @@ export default {
         }
         this.goldloaded = true;
       }
+
+      socket.on("currencies", (fetchedData) => {
+        if (fetchedData[0]) {
+          if (this.$route.path === "/") {
+            fetchedData.pop();
+            fetchedData.pop();
+            fetchedData.pop();
+            fetchedData.pop();
+          }
+          this.data = fetchedData;
+
+          if (process.client) {
+            localStorage.setItem("currencies", JSON.stringify(fetchedData));
+          }
+          
+        }
+        this.goldloaded = true;
+      });
     }
-    socket.on("currencies", (fetchedData) => {
-      if (fetchedData[0]) {
-        this.data = fetchedData;
-        let temp = this.data[3];
-        this.data[3] = this.data[18];
-        this.data[18] = temp;
-        if (process.client) {
-          localStorage.setItem('currencies',JSON.stringify(fetchedData));
-        }
-        if (this.$route.path === "/") {
-          this.data.pop();
-          this.data.pop();
-          this.data.pop();
-          this.data.pop();
-        }
-      }
-      this.goldloaded = true;
-    });
   },
   methods: {
     convertTable: function () {

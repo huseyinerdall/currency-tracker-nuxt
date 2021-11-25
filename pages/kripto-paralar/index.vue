@@ -2,9 +2,7 @@
   <div class="home">
     <v-container class="pa-0 pt-lg-4">
       <GlobalInfos />
-      <LazyHydrate>
-        <MainCryptoCurrency />
-      </LazyHydrate>
+      <MainCryptoCurrency />
     </v-container>
   </div>
 </template>
@@ -33,7 +31,6 @@ export default {
     ],
   },
   components: {
-    LazyHydrate
   }
 };
 </script>
